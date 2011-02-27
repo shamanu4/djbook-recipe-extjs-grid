@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}extjs/resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}extjs/resources/css/xtheme-gray.css" />
+    <link rel="stylesheet" type="text/css" href="{{ MEDIA_URL }}extjs/resources/css/custom.css" />
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/jquery.js" type="text/javascript"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}extjs/adapter/jquery/ext-jquery-adapter.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}extjs/ext-all.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}extjs/src/locale/ext-lang-ru.js"></script>
+    <script type="text/javascript" src="{% url sample:api %}"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/Ext.stores.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/Ext.ux.components.js"></script>
+    <script type="text/javascript" src="{{ MEDIA_URL }}js/Ext.ux.MainViewport.js"></script>
+    <script type="text/javascript">
+        Ext.BLANK_IMAGE_URL = '{{ MEDIA_URL }}extjs/resources/images/default/s.gif';
+        Ext.QuickTips.init();
+        
+        Ext.apply(Ext.QuickTips.getQuickTip(), {
+            showDelay: 1000
+        });
+
+        Ext.Ajax.on('requestcomplete', function(req,response){
+            batch = eval(response.responseText)
+            for(line in batch) {
+                if(typeof(line)=='number') {
+                    data = batch[line]
+                    if(data.result.msg && data.result.title) {
+                        if(typeof(data.result.msg) == 'object') {
+                            for(line in data.result.msg) {
+                                if(data.result.success) {
+                                    Ext.ux.msg(data.result.title, line+": "+data.result.msg[line], Ext.Msg.INFO);
+                                } else {
+                                    Ext.ux.msg(data.result.title, line+": "+data.result.msg[line], Ext.Msg.ERROR);
+                                }
+                            }
+                        } else {
+                            if(data.result.success) {
+                                Ext.ux.msg(data.result.title, data.result.msg, Ext.Msg.INFO);
+                            } else {
+                                Ext.ux.msg(data.result.title, data.result.msg, Ext.Msg.ERROR);
+                            }
+                        }
+                    }                    
+                }
+            }
+        }, this);
+
+        Ext.Ajax.on('requestexception', function(){
+            Ext.ux.msg('Failure', 'Request failed', Ext.Msg.ERROR);
+        }, this);
+        
+        Ext.Direct.on('exception', function(event){            
+            Ext.ux.msg('RPC Error', event.result.error, Ext.Msg.ERROR);
+        });        
+    </script>      
+{% endblock %}
+
+{% block body %}
+    <div id="loading-mask" style=""></div>
+    <div id="loading">
+        <div class="loading-indicator">
+            <img src="{{ MEDIA_URL }}img/ajax-loader.gif" width="100" height="100" style="margin-right:8px;" align="absmiddle"/>
+        </div>
+    </div>
+        
+    {% block content %}{% endblock %}
+    
+    <script type="text/javascript">
+    Ext.onReady(function(){
+        setTimeout(function(){
+            Ext.get('loading').remove();
+            Ext.get('loading-mask').fadeOut({remove:true});
+        }, 250);
+        var vp = new Ext.ux.MainViewport();
+    });
+    </script> 
+{% endblock %}

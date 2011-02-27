@@ -1,0 +1,4 @@
+*.pyc
+*.*~
+src/settings_local.py
+nbproject/*
