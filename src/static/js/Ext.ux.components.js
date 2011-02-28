@@ -132,6 +132,7 @@ Ext.ux.StreetGrid = Ext.extend(Ext.ux.CustomGrid ,{
                         displayField: 'name'
                     }),
                     renderer: function(value, metaData, record, rowIndex, colIndex, store) {
+                         Ext.ux.cities_combo_store.load()
                          var index = Ext.ux.cities_combo_store.find('id',value)
                          if (index>=0) {
                             return Ext.ux.cities_combo_store.getAt(index).data.name
